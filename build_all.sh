@@ -64,6 +64,9 @@ build_android() {
         print_status "Building App Bundle..."
         flutter build appbundle --target-platform android-arm64 --release
         
+        print_status "Building APKs for all architectures..."
+        flutter build apk --split-per-abi --release
+        
         print_success "Android builds completed!"
         print_status "APK location: build/app/outputs/flutter-apk/app-release.apk"
         print_status "AAB location: build/app/outputs/bundle/release/app-release.aab"

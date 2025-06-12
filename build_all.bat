@@ -39,6 +39,9 @@ if not errorlevel 1 (
     echo [INFO] Building App Bundle...
     flutter build appbundle --target-platform android-arm64 --release
     
+    echo [INFO] Building APKs for all architectures...
+    flutter build apk --split-per-abi --release
+    
     echo [SUCCESS] Android builds completed!
     echo [INFO] APK location: build\app\outputs\flutter-apk\app-release.apk
     echo [INFO] AAB location: build\app\outputs\bundle\release\app-release.aab
