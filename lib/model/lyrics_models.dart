@@ -3,6 +3,9 @@ import 'dart:developer';
 
 enum LyricsProvider {
   lrcnet,
+  kugou,
+  youtubeMusic,
+  youtubeSubtitle,
   none,
 }
 

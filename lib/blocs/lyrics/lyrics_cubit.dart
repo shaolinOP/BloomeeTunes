@@ -31,25 +31,40 @@ class LyricsCubit extends Cubit<LyricsState> {
       Lyrics? lyrics = await BloomeeDBService.getLyrics(mediaItem.id);
       if (lyrics == null) {
         try {
+          // Extract video ID for YouTube sources
+          String? videoId;
+          if (mediaItem.extras?['source'] == 'youtube') {
+            videoId = mediaItem.id.replaceAll('youtube', '');
+          }
+          
           lyrics = await LyricsRepository.getLyrics(
-              mediaItem.title, mediaItem.artist ?? "",
-              album: mediaItem.album, duration: mediaItem.duration);
+            mediaItem.title, 
+            mediaItem.artist ?? "",
+            album: mediaItem.album, 
+            duration: mediaItem.duration,
+            videoId: videoId,
+          );
+          
           if (lyrics.lyricsSynced == "No Lyrics Found") {
             lyrics = lyrics.copyWith(lyricsSynced: null);
           }
+          
           lyrics = lyrics.copyWith(mediaID: mediaItem.id);
           emit(LyricsLoaded(lyrics, mediaItem));
+          
           BloomeeDBService.getSettingBool(GlobalStrConsts.autoSaveLyrics)
               .then((value) {
             if ((value ?? false) && lyrics != null) {
               BloomeeDBService.putLyrics(lyrics);
-              log("Lyrics saved for ID: ${mediaItem.id} Duration: ${lyrics.duration}",
+              log("Lyrics saved for ID: ${mediaItem.id} Duration: ${lyrics.duration} Provider: ${lyrics.provider}",
                   name: "LyricsCubit");
             }
           });
-          log("Lyrics loaded for ID: ${mediaItem.id} Duration: ${lyrics.duration} [Online]",
+          
+          log("Lyrics loaded for ID: ${mediaItem.id} Duration: ${lyrics.duration} Provider: ${lyrics.provider} [Online]",
               name: "LyricsCubit");
         } catch (e) {
+          log("Error loading lyrics: $e", name: "LyricsCubit");
           emit(LyricsError(mediaItem));
         }
       } else if (lyrics.mediaID == mediaItem.id) {
@@ -76,6 +91,51 @@ class LyricsCubit extends Cubit<LyricsState> {
 
       log("Lyrics deleted for ID: ${mediaItem.id}", name: "LyricsCubit");
     });
+  }
+
+  /// Search lyrics from all providers and return options
+  Future<Map<LyricsProvider, List<Lyrics>>> searchAllProviders(MediaItemModel mediaItem) async {
+    String? videoId;
+    if (mediaItem.extras?['source'] == 'youtube') {
+      videoId = mediaItem.id.replaceAll('youtube', '');
+    }
+    
+    return await LyricsRepository.getAllAvailableLyrics(
+      mediaItem.title,
+      mediaItem.artist ?? "",
+      album: mediaItem.album,
+      duration: mediaItem.duration,
+      videoId: videoId,
+    );
+  }
+
+  /// Get lyrics from a specific provider
+  Future<void> getLyricsFromProvider(MediaItemModel mediaItem, LyricsProvider provider) async {
+    emit(LyricsLoading(mediaItem));
+    
+    try {
+      String? videoId;
+      if (mediaItem.extras?['source'] == 'youtube') {
+        videoId = mediaItem.id.replaceAll('youtube', '');
+      }
+      
+      final lyrics = await LyricsRepository.getLyrics(
+        mediaItem.title,
+        mediaItem.artist ?? "",
+        album: mediaItem.album,
+        duration: mediaItem.duration,
+        videoId: videoId,
+        provider: provider,
+      );
+      
+      final updatedLyrics = lyrics.copyWith(mediaID: mediaItem.id);
+      emit(LyricsLoaded(updatedLyrics, mediaItem));
+      
+      log("Lyrics loaded from ${provider.name} for ID: ${mediaItem.id}", name: "LyricsCubit");
+    } catch (e) {
+      log("Error loading lyrics from $provider: $e", name: "LyricsCubit");
+      emit(LyricsError(mediaItem));
+    }
   }
 
   @override

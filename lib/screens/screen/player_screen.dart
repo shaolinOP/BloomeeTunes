@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:ui';
 import 'package:Bloomee/screens/screen/home_views/timer_view.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
@@ -180,7 +181,9 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
                         color: Colors.transparent,
                         backdropTapClosesPanel: true,
                         panel: UpNextPanel(panelController: _panelController),
-                        body: playerUI(context, musicPlayer),
+                        body: Platform.isWindows || Platform.isLinux || Platform.isMacOS
+                            ? VolumeDragController(child: playerUI(context, musicPlayer))
+                            : playerUI(context, musicPlayer),
                       )
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -193,7 +196,9 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
                                       MediaQuery.of(context).size.width * 0.60),
                               child: Padding(
                                 padding: const EdgeInsets.all(16.0),
-                                child: playerUI(context, musicPlayer),
+                                child: Platform.isWindows || Platform.isLinux || Platform.isMacOS
+                                    ? VolumeDragController(child: playerUI(context, musicPlayer))
+                                    : playerUI(context, musicPlayer),
                               )),
                           Expanded(
                             child: Padding(
@@ -755,6 +760,36 @@ class PlayerCtrlWidgets extends StatelessWidget {
                             },
                           );
                         },
+                      ),
+                    ),
+                    Tooltip(
+                      message: "Queue",
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 5),
+                        child: SizedBox(
+                          height: 35,
+                          child: IconButton(
+                            padding: const EdgeInsets.all(5),
+                            constraints: const BoxConstraints(),
+                            style: const ButtonStyle(
+                              tapTargetSize: MaterialTapTargetSize
+                                  .shrinkWrap, // the '2023' part
+                            ),
+                            icon: const Icon(
+                              MingCute.list_ordered_line,
+                              color: Default_Theme.primaryColor1,
+                              size: 24,
+                            ),
+                            onPressed: () {
+                              if (ResponsiveBreakpoints.of(context)
+                                  .smallerOrEqualTo(TABLET)) {
+                                _panelController.isPanelOpen
+                                    ? _panelController.close()
+                                    : _panelController.open();
+                              }
+                            },
+                          ),
+                        ),
                       ),
                     ),
                     Tooltip(

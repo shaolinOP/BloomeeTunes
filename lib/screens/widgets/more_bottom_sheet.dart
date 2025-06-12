@@ -232,7 +232,7 @@ void showMoreBottomSheet(
                           ),
                           onTap: () {
                             Navigator.pop(context);
-                            // context.read<DownloaderCubit>().downloadSong(song);
+                            context.read<DownloaderCubit>().downloadSong(song);
                           },
                         )
                       : ListTile(
