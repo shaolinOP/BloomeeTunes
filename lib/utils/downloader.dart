@@ -159,10 +159,10 @@ class BloomeeDownloader {
         pictures: imageBytes != null ? [
           Picture(
             bytes: imageBytes,
-            mimeType: null,
+            mimeType: MimeType.jpeg,
             pictureType: PictureType.other,
           )
-        ] : null,
+        ] : [],
       );
       
       await AudioTags.write(filePath, tag);
@@ -175,7 +175,7 @@ class BloomeeDownloader {
           trackArtist: song.artist,
           album: song.album,
           genre: song.genre,
-          pictures: null,
+          pictures: [],
         );
         await AudioTags.write(filePath, tag);
       } catch (e2) {

@@ -369,7 +369,7 @@ class _MyAppState extends State<MyApp> {
                 theme: Default_Theme().defaultThemeData,
                 scrollBehavior: CustomScrollBehavior(),
                 debugShowCheckedModeBanner: false,
-            }
+              );
           },
         ),
       ),
