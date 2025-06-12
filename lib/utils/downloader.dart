@@ -96,13 +96,23 @@ class BloomeeDownloader {
         if (song.extras!['source'] == 'youtube' ||
             (song.extras!['perma_url'].toString()).contains('youtube')) {
           kURL = await latestYtLink(song.id.replaceAll("youtube", ""));
+          if (kURL == null || kURL.isEmpty) {
+            throw Exception("Failed to get YouTube download URL");
+          }
         } else {
           kURL = song.extras!['url'];
-          kURL = await getJsQualityURL(kURL!, isStreaming: false);
+          if (kURL == null || kURL.isEmpty) {
+            throw Exception("No download URL found in song data");
+          }
+          kURL = await getJsQualityURL(kURL, isStreaming: false);
+          if (kURL == null || kURL.isEmpty) {
+            throw Exception("Failed to get streaming URL");
+          }
         }
 
+        log("Downloading from URL: $kURL", name: "BloomeeDownloader");
         taskId = await FlutterDownloader.enqueue(
-          url: kURL!,
+          url: kURL,
           savedDir: filePath,
           fileName: fileName,
           showNotification: true,
@@ -113,6 +123,8 @@ class BloomeeDownloader {
       } catch (e) {
         log("Failed to add ${song.title} to download queue",
             error: e, name: "BloomeeDownloader");
+        SnackbarService.showMessage("Download failed: ${e.toString()}");
+        return null;
       }
     } else {
       log("${song.title} is already downloaded. Skipping download");

@@ -166,34 +166,40 @@ class FetchSearchResultsCubit extends Cubit<FetchSearchResultsState> {
     String query, {
     ResultTypes resultType = ResultTypes.songs,
   }) async {
-    log("Youtube Music Search", name: "FetchSearchRes");
+    log("Youtube Music Search: $query", name: "FetchSearchRes");
 
     last_YTM_search.query = query;
     emit(FetchSearchResultsLoading(resultType: resultType));
-    switch (resultType) {
-      case ResultTypes.songs:
-        final searchResults = await YTMusic().searchYtm(query, type: "songs");
-        if (searchResults == null) {
-          emit(state.copyWith(
-            mediaItems: [],
-            loadingState: LoadingState.loaded,
-            hasReachedMax: true,
-            resultType: ResultTypes.songs,
-            sourceEngine: SourceEngine.eng_YTM,
-          ));
-          return;
-        } else {
-          last_YTM_search.mediaItemList =
-              ytmMapList2MediaItemList(searchResults['songs']);
-          emit(state.copyWith(
-            mediaItems:
-                List<MediaItemModel>.from(last_YTM_search.mediaItemList),
-            loadingState: LoadingState.loaded,
-            hasReachedMax: true,
-            resultType: ResultTypes.songs,
-            sourceEngine: SourceEngine.eng_YTM,
-          ));
-        }
+    
+    try {
+      switch (resultType) {
+        case ResultTypes.songs:
+          final searchResults = await YTMusic().searchYtm(query, type: "songs")
+              .timeout(const Duration(seconds: 30));
+          
+          if (searchResults == null || searchResults['songs'] == null) {
+            log("No search results found for: $query", name: "FetchSearchRes");
+            emit(state.copyWith(
+              mediaItems: [],
+              loadingState: LoadingState.loaded,
+              hasReachedMax: true,
+              resultType: ResultTypes.songs,
+              sourceEngine: SourceEngine.eng_YTM,
+            ));
+            return;
+          } else {
+            last_YTM_search.mediaItemList =
+                ytmMapList2MediaItemList(searchResults['songs']);
+            log("Found ${last_YTM_search.mediaItemList.length} songs", name: "FetchSearchRes");
+            emit(state.copyWith(
+              mediaItems:
+                  List<MediaItemModel>.from(last_YTM_search.mediaItemList),
+              loadingState: LoadingState.loaded,
+              hasReachedMax: true,
+              resultType: ResultTypes.songs,
+              sourceEngine: SourceEngine.eng_YTM,
+            ));
+          }
         break;
       case ResultTypes.playlists:
         final res = await YTMusic().searchYtm(query, type: "playlists");
@@ -265,46 +271,75 @@ class FetchSearchResultsCubit extends Cubit<FetchSearchResultsState> {
 
     log("got all searches ${last_YTM_search.mediaItemList.length}",
         name: "FetchSearchRes");
+    } catch (e) {
+      log("Error in YTM search: $e", name: "FetchSearchRes");
+      emit(state.copyWith(
+        mediaItems: [],
+        albumItems: [],
+        playlistItems: [],
+        artistItems: [],
+        loadingState: LoadingState.loaded,
+        hasReachedMax: true,
+        resultType: resultType,
+        sourceEngine: SourceEngine.eng_YTM,
+      ));
+    }
   }
 
   Future<void> searchYTVTracks(String query,
       {ResultTypes resultType = ResultTypes.songs}) async {
-    log("Youtube Video Search", name: "FetchSearchRes");
+    log("Youtube Video Search: $query", name: "FetchSearchRes");
 
     last_YTV_search.query = query;
     emit(FetchSearchResultsLoading(resultType: resultType));
 
-    switch (resultType) {
-      case ResultTypes.playlists:
-        final res =
-            await YouTubeServices().fetchSearchResults(query, playlist: true);
-        final List<PlaylistOnlModel> playlists = ytvMap2Playlists({
-          'playlists': res[0]['items'],
-        });
-        emit(state.copyWith(
-          playlistItems: List<PlaylistOnlModel>.from(playlists),
-          resultType: ResultTypes.playlists,
-          hasReachedMax: true,
-          loadingState: LoadingState.loaded,
-          sourceEngine: SourceEngine.eng_YTV,
-        ));
-        break;
-      case ResultTypes.albums:
-      case ResultTypes.artists:
-      case ResultTypes.songs:
-        final searchResults = await YouTubeServices().fetchSearchResults(query);
-        last_YTV_search.mediaItemList =
-            (fromYtVidSongMapList2MediaItemList(searchResults[0]['items']));
-        emit(state.copyWith(
-          mediaItems: List<MediaItemModel>.from(last_YTV_search.mediaItemList),
-          loadingState: LoadingState.loaded,
-          resultType: ResultTypes.songs,
-          hasReachedMax: true,
-          sourceEngine: SourceEngine.eng_YTV,
-        ));
-        log("got all searches ${last_YTV_search.mediaItemList.length}",
-            name: "FetchSearchRes");
-        break;
+    try {
+      switch (resultType) {
+        case ResultTypes.playlists:
+          final res = await YouTubeServices()
+              .fetchSearchResults(query, playlist: true)
+              .timeout(const Duration(seconds: 30));
+          final List<PlaylistOnlModel> playlists = ytvMap2Playlists({
+            'playlists': res[0]['items'],
+          });
+          emit(state.copyWith(
+            playlistItems: List<PlaylistOnlModel>.from(playlists),
+            resultType: ResultTypes.playlists,
+            hasReachedMax: true,
+            loadingState: LoadingState.loaded,
+            sourceEngine: SourceEngine.eng_YTV,
+          ));
+          break;
+        case ResultTypes.albums:
+        case ResultTypes.artists:
+        case ResultTypes.songs:
+          final searchResults = await YouTubeServices()
+              .fetchSearchResults(query)
+              .timeout(const Duration(seconds: 30));
+          last_YTV_search.mediaItemList =
+              (fromYtVidSongMapList2MediaItemList(searchResults[0]['items']));
+          log("Found ${last_YTV_search.mediaItemList.length} videos", name: "FetchSearchRes");
+          emit(state.copyWith(
+            mediaItems: List<MediaItemModel>.from(last_YTV_search.mediaItemList),
+            loadingState: LoadingState.loaded,
+            resultType: ResultTypes.songs,
+            hasReachedMax: true,
+            sourceEngine: SourceEngine.eng_YTV,
+          ));
+          log("got all searches ${last_YTV_search.mediaItemList.length}",
+              name: "FetchSearchRes");
+          break;
+      }
+    } catch (e) {
+      log("Error in YTV search: $e", name: "FetchSearchRes");
+      emit(state.copyWith(
+        mediaItems: [],
+        playlistItems: [],
+        loadingState: LoadingState.loaded,
+        hasReachedMax: true,
+        resultType: resultType,
+        sourceEngine: SourceEngine.eng_YTV,
+      ));
     }
   }
 
@@ -313,36 +348,39 @@ class FetchSearchResultsCubit extends Cubit<FetchSearchResultsState> {
     bool loadMore = false,
     ResultTypes resultType = ResultTypes.songs,
   }) async {
-    switch (resultType) {
-      case ResultTypes.songs:
-        if (!loadMore) {
-          emit(FetchSearchResultsLoading(resultType: resultType));
-          last_JIS_search.query = query;
-          last_JIS_search.mediaItemList.clear();
-          last_JIS_search.hasReachedMax = false;
-          last_JIS_search.page = 1;
-        }
-        log("JIOSaavn Search", name: "FetchSearchRes");
-        final searchResults = await SaavnAPI().fetchSongSearchResults(
-            searchQuery: query, page: last_JIS_search.page);
-        last_JIS_search.page++;
-        _mediaItemList =
-            fromSaavnSongMapList2MediaItemList(searchResults['songs']);
-        if (_mediaItemList.length < 20) {
-          last_JIS_search.hasReachedMax = true;
-        }
-        last_JIS_search.mediaItemList.addAll(_mediaItemList);
+    try {
+      switch (resultType) {
+        case ResultTypes.songs:
+          if (!loadMore) {
+            emit(FetchSearchResultsLoading(resultType: resultType));
+            last_JIS_search.query = query;
+            last_JIS_search.mediaItemList.clear();
+            last_JIS_search.hasReachedMax = false;
+            last_JIS_search.page = 1;
+          }
+          log("JIOSaavn Search: $query", name: "FetchSearchRes");
+          final searchResults = await SaavnAPI()
+              .fetchSongSearchResults(searchQuery: query, page: last_JIS_search.page)
+              .timeout(const Duration(seconds: 30));
+          last_JIS_search.page++;
+          _mediaItemList =
+              fromSaavnSongMapList2MediaItemList(searchResults['songs']);
+          if (_mediaItemList.length < 20) {
+            last_JIS_search.hasReachedMax = true;
+          }
+          last_JIS_search.mediaItemList.addAll(_mediaItemList);
 
-        emit(state.copyWith(
-          mediaItems: List<MediaItemModel>.from(last_JIS_search.mediaItemList),
-          loadingState: LoadingState.loaded,
-          hasReachedMax: last_JIS_search.hasReachedMax,
-          resultType: ResultTypes.songs,
-          sourceEngine: SourceEngine.eng_JIS,
-        ));
+          log("Found ${_mediaItemList.length} songs from JioSaavn", name: "FetchSearchRes");
+          emit(state.copyWith(
+            mediaItems: List<MediaItemModel>.from(last_JIS_search.mediaItemList),
+            loadingState: LoadingState.loaded,
+            hasReachedMax: last_JIS_search.hasReachedMax,
+            resultType: ResultTypes.songs,
+            sourceEngine: SourceEngine.eng_JIS,
+          ));
 
-        log("got all searches ${last_JIS_search.mediaItemList.length}",
-            name: "FetchSearchRes");
+          log("got all searches ${last_JIS_search.mediaItemList.length}",
+              name: "FetchSearchRes");
         break;
       case ResultTypes.albums:
         emit(FetchSearchResultsLoading(resultType: resultType));
@@ -383,6 +421,19 @@ class FetchSearchResultsCubit extends Cubit<FetchSearchResultsState> {
           sourceEngine: SourceEngine.eng_JIS,
         ));
         break;
+    }
+    } catch (e) {
+      log("Error in JIS search: $e", name: "FetchSearchRes");
+      emit(state.copyWith(
+        mediaItems: [],
+        albumItems: [],
+        playlistItems: [],
+        artistItems: [],
+        loadingState: LoadingState.loaded,
+        hasReachedMax: true,
+        resultType: resultType,
+        sourceEngine: SourceEngine.eng_JIS,
+      ));
     }
   }
 
