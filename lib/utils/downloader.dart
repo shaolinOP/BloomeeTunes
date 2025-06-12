@@ -168,7 +168,6 @@ class BloomeeDownloader {
           trackArtist: song.artist,
           album: song.album,
           genre: song.genre,
-          pictures: null,
         );
         await AudioTags.write(filePath, tag);
       } catch (e2) {
