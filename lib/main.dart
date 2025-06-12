@@ -370,6 +370,7 @@ class _MyAppState extends State<MyApp> {
                 scrollBehavior: CustomScrollBehavior(),
                 debugShowCheckedModeBanner: false,
               );
+            }
           },
         ),
       ),
