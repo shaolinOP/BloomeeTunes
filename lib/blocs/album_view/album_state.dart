@@ -41,4 +41,15 @@ final class AlbumLoaded extends AlbumState {
   const AlbumLoaded(
       {required AlbumModel album, super.isSavedToCollections = false})
       : super(album: album);
+
+  @override
+  AlbumLoaded copyWith({
+    AlbumModel? album,
+    bool? isSavedToCollections,
+  }) {
+    return AlbumLoaded(
+      album: album ?? this.album,
+      isSavedToCollections: isSavedToCollections ?? this.isSavedToCollections,
+    );
+  }
 }

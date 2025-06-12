@@ -24,6 +24,12 @@ class PlayerInitializer {
         // androidNotificationIcon: 'assets/icons/Bloomee_logo_fore.png',
         androidShowNotificationBadge: true,
         notificationColor: Default_Theme.accentColor2,
+        // Windows-specific configurations for media controls
+        preloadArtwork: true,
+        artDownscaleWidth: 144,
+        artDownscaleHeight: 144,
+        fastForwardInterval: Duration(seconds: 10),
+        rewindInterval: Duration(seconds: 10),
       ),
     );
   }

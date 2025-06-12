@@ -71,13 +71,24 @@ class AlbumCubit extends Cubit<AlbumState> {
   }
 
   Future<void> addToSavedCollections() async {
-    if (!state.isSavedToCollections) {
-      await BloomeeDBService.putOnlAlbumModel(album);
-      SnackbarService.showMessage("Album added to Library!");
-    } else {
-      await BloomeeDBService.removeFromSavedCollecs(album.sourceId);
-      SnackbarService.showMessage("Album removed from Library!");
+    try {
+      if (!state.isSavedToCollections) {
+        await BloomeeDBService.putOnlAlbumModel(album);
+        SnackbarService.showMessage("Album added to Library!");
+        // Immediately update the state
+        emit(state.copyWith(isSavedToCollections: true));
+      } else {
+        await BloomeeDBService.removeFromSavedCollecs(album.sourceId);
+        SnackbarService.showMessage("Album removed from Library!");
+        // Immediately update the state
+        emit(state.copyWith(isSavedToCollections: false));
+      }
+      // Double-check with database
+      await checkIsSaved();
+    } catch (e) {
+      SnackbarService.showMessage("Error updating album: $e");
+      // Revert state if there was an error
+      await checkIsSaved();
     }
-    checkIsSaved();
   }
 }
