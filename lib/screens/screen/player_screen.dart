@@ -301,7 +301,10 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
                               ),
                             ),
                             // const Spacer(),
-                            PlayerCtrlWidgets(musicPlayer: musicPlayer)
+                            PlayerCtrlWidgets(
+                              musicPlayer: musicPlayer,
+                              panelController: _panelController,
+                            )
                           ],
                         ),
                       ),
@@ -356,9 +359,11 @@ class PlayerCtrlWidgets extends StatelessWidget {
   const PlayerCtrlWidgets({
     super.key,
     required this.musicPlayer,
+    required this.panelController,
   });
 
   final BloomeeMusicPlayer musicPlayer;
+  final PanelController panelController;
 
   @override
   Widget build(BuildContext context) {
@@ -783,9 +788,9 @@ class PlayerCtrlWidgets extends StatelessWidget {
                             onPressed: () {
                               if (ResponsiveBreakpoints.of(context)
                                   .smallerOrEqualTo(TABLET)) {
-                                _panelController.isPanelOpen
-                                    ? _panelController.close()
-                                    : _panelController.open();
+                                panelController.isPanelOpen
+                                    ? panelController.close()
+                                    : panelController.open();
                               }
                             },
                           ),
