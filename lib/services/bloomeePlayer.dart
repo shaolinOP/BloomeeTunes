@@ -334,13 +334,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       log("Error playing audio source for $mediaId: $e", name: "bloomeePlayer");
       
       if (e is PlayerException) {
-        final errorMessage = switch (e.code) {
-          PlayerExceptionCode.aborted => "Playback was aborted",
-          PlayerExceptionCode.networkError => "Network error - check your connection",
-          PlayerExceptionCode.decodingError => "Audio format not supported",
-          PlayerExceptionCode.sourceError => "Failed to load song source",
-          _ => "Failed to play song: ${e.message}",
-        };
+        final errorMessage = "Failed to play song: ${e.message}";
         SnackbarService.showMessage(errorMessage);
       } else {
         SnackbarService.showMessage("Unexpected error: ${e.toString()}");
