@@ -3,10 +3,44 @@ allprojects {
         google()
         mavenCentral()
     }
+    
+    // Global Java 21 configuration for ALL projects
+    tasks.withType(JavaCompile) {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
+    
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile) {
+        kotlinOptions {
+            jvmTarget = "21"
+        }
+    }
 }
 
 rootProject.buildDir = '../build'
 subprojects {
+    // Force ALL subprojects to use Java 21 for compatibility
+    afterEvaluate { project ->
+        if (project.plugins.hasPlugin("com.android.application") ||
+                project.plugins.hasPlugin("com.android.library")) {
+            project.android {
+                compileSdkVersion 35
+                compileOptions {
+                    sourceCompatibility JavaVersion.VERSION_21
+                    targetCompatibility JavaVersion.VERSION_21
+                }
+            }
+            
+            // Force Kotlin to use JVM target 21
+            if (project.plugins.hasPlugin("kotlin-android")) {
+                project.android {
+                    kotlinOptions {
+                        jvmTarget = "21"
+                    }
+                }
+            }
+        }
+    }
 
     // ============
     // added for isarDB issue (verifyResource issue when building)
