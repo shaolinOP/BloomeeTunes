@@ -31,20 +31,22 @@ subprojects {
             project.android {
                 compileSdkVersion 35
                 compileOptions {
-                    sourceCompatibility JavaVersion.VERSION_21
-                    targetCompatibility JavaVersion.VERSION_21
+                    sourceCompatibility JavaVersion.VERSION_17
+                    targetCompatibility JavaVersion.VERSION_17
                 }
             }
             
-            // Force Kotlin to use JVM target 21
+            // Force Kotlin to use JVM target 21 with compatibility settings
             if (project.plugins.hasPlugin("kotlin-android")) {
-                project.android {
+                project.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile) {
                     kotlinOptions {
-                        jvmTarget = "21"
+                        jvmTarget = "17"
                         freeCompilerArgs += [
                             "-Xno-param-assertions",
                             "-Xno-call-assertions", 
-                            "-Xno-receiver-assertions"
+                            "-Xno-receiver-assertions",
+                            "-Xjvm-default=all",
+                            "-Xallow-unstable-dependencies"
                         ]
                     }
                 }
