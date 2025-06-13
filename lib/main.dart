@@ -127,7 +127,11 @@ Future<void> main() async {
   }
   await initServices();
   setHighRefreshRate();
-  MetadataGod.initialize();
+  try {
+    MetadataGod.initialize();
+  } catch (e) {
+    log('MetadataGod initialization failed: $e', name: 'main');
+  }
   setupPlayerCubit();
   DiscordService.initialize();
   runApp(const MyApp());
@@ -167,10 +171,12 @@ class _MyAppState extends State<MyApp> {
       ReceiveSharingIntent.instance.getInitialMedia().then((event) {
         sharedMediaFiles.clear();
         sharedMediaFiles.addAll(event);
-        log(sharedMediaFiles[0].mimeType.toString(),
-            name: "Shared Files Offline");
-        log(sharedMediaFiles[0].path, name: "Shared Files Offline");
-        processIncomingIntent(sharedMediaFiles);
+        if (sharedMediaFiles.isNotEmpty) {
+          log(sharedMediaFiles[0].mimeType.toString(),
+              name: "Shared Files Offline");
+          log(sharedMediaFiles[0].path, name: "Shared Files Offline");
+          processIncomingIntent(sharedMediaFiles);
+        }
         ReceiveSharingIntent.instance.reset();
       });
     }

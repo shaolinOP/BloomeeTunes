@@ -30,7 +30,7 @@ def keystoreProperties = new Properties()
 android {
     namespace "ls.bloomee.musicplayer"
     compileSdk 35
-    ndkVersion flutter.ndkVersion
+    ndkVersion "27.0.12077973"
 
     // flavorDimensions "flavors"
     // productFlavors {
