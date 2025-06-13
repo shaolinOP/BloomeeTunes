@@ -242,13 +242,12 @@ class _MyAppState extends State<MyApp> {
           create: (context) => LastdotfmCubit(playerCubit: bloomeePlayerCubit),
           lazy: false,
         ),
-        BlocProvider(
-          create: (context) => DownloaderCubit(
-              connectivityCubit: context.read<ConnectivityCubit>()),
-          lazy: false,
-        ),
       ],
-      child: BlocBuilder<BloomeePlayerCubit, BloomeePlayerState>(
+      child: RepositoryProvider(
+        create: (context) => DownloaderCubit(
+            connectivityCubit: context.read<ConnectivityCubit>()),
+        lazy: false,
+        child: BlocBuilder<BloomeePlayerCubit, BloomeePlayerState>(
           builder: (context, state) {
             if (state is BloomeePlayerInitial) {
               return const SizedBox(
@@ -371,7 +370,9 @@ class _MyAppState extends State<MyApp> {
                 debugShowCheckedModeBanner: false,
               );
             }
-          }),
+          },
+        ),
+      ),
     );
   }
 }
