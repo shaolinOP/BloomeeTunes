@@ -42,7 +42,9 @@ mixin SearchMixin on YTMusicServices {
       bool ignoreSpelling = false,
       String additionalParams = '',
       Map<String, dynamic>? endpoint}) async {
-    final data = Map.of(context);
+    try {
+      print('YTMusic Search: Starting search for "$query" with filter: $filter');
+      final data = Map.of(context);
 
     final filters = [
       'albums',
@@ -83,8 +85,10 @@ mixin SearchMixin on YTMusicServices {
       data['query'] = query;
     }
 
+    print('YTMusic Search: Sending request with data: ${data.toString().substring(0, 200)}...');
     final response =
         (await sendRequest("search", data, additionalParams: additionalParams));
+    print('YTMusic Search: Received response, processing...');
     Map<String, dynamic> result = {};
     List contents = nav(response, [
           'contents',
@@ -140,7 +144,12 @@ mixin SearchMixin on YTMusicServices {
     }
 
     result['sections'] = resultContents;
+    print('YTMusic Search: Completed search, found ${resultContents.length} sections');
     return result;
+    } catch (e) {
+      print('YTMusic Search Error: $e');
+      return {'sections': [], 'error': e.toString()};
+    }
   }
 
   Map<String, dynamic> _handleMusicCardShelfRenderer(Map item) {

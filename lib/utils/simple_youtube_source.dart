@@ -31,7 +31,7 @@ class SimpleYouTubeAudioSource extends StreamAudioSource {
           ? audioStreams.last 
           : audioStreams.first;
       
-      dev.log('SimpleYT: Selected stream - ${selectedStream.codec} ${selectedStream.bitrate}', name: 'SimpleYT');
+      dev.log('SimpleYT: Selected stream - ${selectedStream.codec?.mimeType ?? 'unknown'} ${selectedStream.bitrate?.bitsPerSecond ?? 0}', name: 'SimpleYT');
       
       start ??= 0;
       

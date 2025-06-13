@@ -41,7 +41,7 @@ Future<Map<String, dynamic>> initializeContext() async {
         "gl": await BloomeeDBService.getSettingStr(GlobalStrConsts.countryCode,
             defaultValue: "US"),
         'clientName': 'WEB_REMIX',
-        'clientVersion': '1.$date.01.00',
+        'clientVersion': '1.20241213.01.00',
         'osName': 'Windows',
         'osVersion': '10.0',
         'platform': 'DESKTOP',

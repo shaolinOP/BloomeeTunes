@@ -46,7 +46,7 @@ abstract class YTMusicServices {
   static const httpsYtmDomain = 'https://music.youtube.com';
   static const baseApiEndpoint = '/youtubei/v1/';
   static const String ytmParams =
-      '?alt=json&key=AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX30';
+      '?alt=json&key=AIzaSyDK3iBpDP9nHVTk2qL73FLJICfOC3c51Og';
   static const userAgent =
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36';
 
@@ -105,22 +105,30 @@ abstract class YTMusicServices {
 
   Future<Map> sendRequest(String endpoint, Map<String, dynamic> body,
       {Map<String, String>? headers, String additionalParams = ''}) async {
-    //
-    body = {...body, ...context};
+    try {
+      body = {...body, ...context};
 
-    this.headers.addAll(headers ?? {});
-    final Uri uri = Uri.parse(httpsYtmDomain +
-        baseApiEndpoint +
-        endpoint +
-        ytmParams +
-        additionalParams);
-    final response =
-        await post(uri, headers: this.headers, body: jsonEncode(body));
+      this.headers.addAll(headers ?? {});
+      final Uri uri = Uri.parse(httpsYtmDomain +
+          baseApiEndpoint +
+          endpoint +
+          ytmParams +
+          additionalParams);
+      
+      print('YTMusic API: Sending request to $uri');
+      final response =
+          await post(uri, headers: this.headers, body: jsonEncode(body));
 
-    if (response.statusCode == 200) {
-      return json.decode(response.body) as Map;
-    } else {
-      return {};
+      print('YTMusic API: Response status: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        return json.decode(response.body) as Map;
+      } else {
+        print('YTMusic API Error: ${response.statusCode} - ${response.body}');
+        return {'error': 'HTTP ${response.statusCode}', 'body': response.body};
+      }
+    } catch (e) {
+      print('YTMusic API Exception: $e');
+      return {'error': e.toString()};
     }
   }
 }

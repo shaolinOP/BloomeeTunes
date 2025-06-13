@@ -14,13 +14,20 @@ class YouTubeDirectAudioSource {
       ytExplode = YoutubeExplode();
       dev.log('YouTubeDirect: Getting direct URL for video: $videoId', name: 'YouTubeDirect');
       
-      // Try to get the manifest
+      // Try to get the manifest with multiple approaches
       StreamManifest? manifest;
       try {
+        // First try without requiring watch page
         manifest = await ytExplode.videos.streams.getManifest(videoId, requireWatchPage: false);
       } catch (e) {
-        dev.log('YouTubeDirect: Failed to get manifest: $e', name: 'YouTubeDirect');
-        throw Exception('Failed to get video manifest: $e');
+        dev.log('YouTubeDirect: First attempt failed: $e', name: 'YouTubeDirect');
+        try {
+          // Try with watch page
+          manifest = await ytExplode.videos.streams.getManifest(videoId, requireWatchPage: true);
+        } catch (e2) {
+          dev.log('YouTubeDirect: Second attempt failed: $e2', name: 'YouTubeDirect');
+          throw Exception('Failed to get video manifest: $e2');
+        }
       }
       
       final audioStreams = manifest.audioOnly.sortByBitrate();
