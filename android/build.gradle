@@ -7,19 +7,18 @@ allprojects {
 
 rootProject.buildDir = '../build'
 subprojects {
-
-    // ============
-    // added for isarDB issue (verifyResource issue when building)
-    //  afterEvaluate { project ->
-    //     if (project.plugins.hasPlugin("com.android.application") ||
-    //             project.plugins.hasPlugin("com.android.library")) {
-    //         project.android {
-    //             compileSdkVersion 34
-    //             buildToolsVersion "34.0.0"
-    //         }
-    //     }
-    // }
-    // ============
+    afterEvaluate { project ->
+        if (project.plugins.hasPlugin("com.android.application") ||
+                project.plugins.hasPlugin("com.android.library")) {
+            project.android {
+                compileSdkVersion 35
+                compileOptions {
+                    sourceCompatibility JavaVersion.VERSION_21
+                    targetCompatibility JavaVersion.VERSION_21
+                }
+            }
+        }
+    }
     project.buildDir = "${rootProject.buildDir}/${project.name}"
     project.evaluationDependsOn(':app')
 }
