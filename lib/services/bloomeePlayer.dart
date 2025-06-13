@@ -9,6 +9,7 @@ import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:Bloomee/utils/ytstream_source.dart';
+import 'package:Bloomee/utils/simple_youtube_source.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:easy_debounce/easy_throttle.dart';
 import 'package:flutter/foundation.dart';
@@ -249,8 +250,16 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         quality = quality ?? "high";
         quality = quality.toLowerCase();
         final id = mediaItem.id.replaceAll("youtube", '');
-        return YouTubeAudioSource(
-            videoId: id, quality: quality, tag: mediaItem);
+        
+        // Try simple implementation first for better reliability
+        try {
+          return SimpleYouTubeAudioSource(
+              videoId: id, quality: quality, tag: mediaItem);
+        } catch (e) {
+          log('SimpleYT failed, trying complex implementation: $e', name: "bloomeePlayer");
+          return YouTubeAudioSource(
+              videoId: id, quality: quality, tag: mediaItem);
+        }
       }
       String? kurl = await getJsQualityURL(mediaItem.extras?["url"]);
       log('Playing: $kurl', name: "bloomeePlayer");

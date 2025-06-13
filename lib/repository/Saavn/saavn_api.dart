@@ -7,6 +7,14 @@ class SaavnAPI {
   Map<String, String> headers = {};
   String baseUrl = 'www.jiosaavn.com';
   String apiStr = '/api.php?_format=json&_marker=0&api_version=4&ctx=web6dot0';
+  
+  // Modern user agents for better compatibility
+  List<String> userAgents = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Mobile Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+  ];
   Map<String, String> endpoints = {
     // Search endpoints
     'searchAll': '__call=autocomplete.get',
@@ -78,6 +86,10 @@ class SaavnAPI {
     }
     url = Uri.parse('https://$baseUrl$apiStr&$param');
     final String languageHeader = 'L=Hindi';
+    
+    // Use random user agent for better compatibility
+    final randomUserAgent = userAgents[DateTime.now().millisecond % userAgents.length];
+    
     headers = {
       'cookie': languageHeader,
       'Accept': 'application/json, text/plain, */*',
@@ -92,8 +104,10 @@ class SaavnAPI {
       'sec-fetch-dest': 'empty',
       'sec-fetch-mode': 'cors',
       'sec-fetch-site': 'same-origin',
-      'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36',
+      'User-Agent': randomUserAgent,
+      'X-Requested-With': 'XMLHttpRequest',
+      'DNT': '1',
+      'Connection': 'keep-alive',
     };
     return get(url, headers: headers).onError((error, stackTrace) {
       return Response(
