@@ -293,13 +293,19 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       if (!audioPlayer.playing) await play();
     } catch (e) {
       log("Error playing audio: $e", name: "bloomeePlayer");
+      log("Error type: ${e.runtimeType}", name: "bloomeePlayer");
+      log("Media item: ${mediaItem.title} - ${mediaItem.extras?['source']}", name: "bloomeePlayer");
+      
       String errorMsg = "Failed to play song";
       if (e is PlayerException) {
         errorMsg = "Player error: ${e.message}";
+        log("PlayerException code: ${e.code}", name: "bloomeePlayer");
       } else if (e.toString().contains('Invalid audio URL')) {
         errorMsg = "Invalid audio source - check network connection";
       } else if (e.toString().contains('Failed to load audio')) {
         errorMsg = "Audio loading failed - try again";
+      } else if (e.toString().contains('source error')) {
+        errorMsg = "Source error - unable to get audio stream";
       } else {
         errorMsg = "Failed to play song: ${e.toString()}";
       }

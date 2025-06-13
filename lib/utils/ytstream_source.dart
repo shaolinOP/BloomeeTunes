@@ -9,18 +9,26 @@ import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
 Future<AudioOnlyStreamInfo> getStreamInfoBG(
     String videoId, RootIsolateToken? token, String quality) async {
-  BackgroundIsolateBinaryMessenger.ensureInitialized(token!);
-  final ytExplode = YoutubeExplode();
-  final manifest = await ytExplode.videos.streams.getManifest(videoId,
-      requireWatchPage: false, ytClients: [YoutubeApiClient.androidMusic, YoutubeApiClient.android, YoutubeApiClient.web]);
-  final supportedStreams = manifest.audioOnly.sortByBitrate();
-  final audioStream = quality == 'high'
-      ? supportedStreams.lastOrNull
-      : supportedStreams.firstOrNull;
-  if (audioStream == null) {
-    throw Exception('No audio stream available for this video.');
+  try {
+    BackgroundIsolateBinaryMessenger.ensureInitialized(token!);
+    final ytExplode = YoutubeExplode();
+    print('Getting manifest for video: $videoId with quality: $quality');
+    final manifest = await ytExplode.videos.streams.getManifest(videoId,
+        requireWatchPage: false, ytClients: [YoutubeApiClient.androidMusic, YoutubeApiClient.android, YoutubeApiClient.web]);
+    final supportedStreams = manifest.audioOnly.sortByBitrate();
+    print('Found ${supportedStreams.length} audio streams for video: $videoId');
+    final audioStream = quality == 'high'
+        ? supportedStreams.lastOrNull
+        : supportedStreams.firstOrNull;
+    if (audioStream == null) {
+      throw Exception('No audio stream available for this video.');
+    }
+    print('Selected stream: ${audioStream.codec} - ${audioStream.bitrate}');
+    return audioStream;
+  } catch (e) {
+    print('Error in getStreamInfoBG for video $videoId: $e');
+    rethrow;
   }
-  return audioStream;
 }
 
 class YouTubeAudioSource extends StreamAudioSource {
@@ -74,6 +82,8 @@ class YouTubeAudioSource extends StreamAudioSource {
         contentType: audioStream.codec.mimeType,
       );
     } catch (e) {
+      dev.log('YouTube stream error for video $videoId: $e', name: 'YTStream');
+      dev.log('Error type: ${e.runtimeType}', name: 'YTStream');
       throw Exception('Failed to load audio: $e');
     }
   }
