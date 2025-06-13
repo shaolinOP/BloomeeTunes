@@ -270,11 +270,25 @@ class YTMusic extends YTMusicServices
   }
 
   Future<Map?> searchYtm(String query, {String type = 'songs'}) async {
-    final searchResults = await super.search(query, filter: type);
-
-    Map? results;
-    if (searchResults["sections"].isEmpty) return null;
-    final content = searchResults["sections"].first["contents"];
+    try {
+      log("Starting YTM search for: $query, type: $type", name: "YTMusic");
+      final searchResults = await super.search(query, filter: type);
+      
+      log("Search results received: ${searchResults.keys}", name: "YTMusic");
+      
+      Map? results;
+      if (searchResults["sections"] == null || searchResults["sections"].isEmpty) {
+        log("No sections found in search results", name: "YTMusic");
+        return null;
+      }
+      
+      final content = searchResults["sections"].first["contents"];
+      if (content == null || content.isEmpty) {
+        log("No content found in first section", name: "YTMusic");
+        return null;
+      }
+      
+      log("Found ${content.length} items in content", name: "YTMusic");
     if (type == "songs") {
       List<Map> songs = [];
       for (var item in content) {
@@ -386,5 +400,10 @@ class YTMusic extends YTMusicServices
       };
     }
     return results;
+    } catch (e, stackTrace) {
+      log("Error in YTM search: $e", name: "YTMusic");
+      log("Stack trace: $stackTrace", name: "YTMusic");
+      return null;
+    }
   }
 }

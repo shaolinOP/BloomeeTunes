@@ -14,6 +14,7 @@ class SaavnAPI {
     'albumResults': '__call=search.getAlbumResults',
     'artistResults': '__call=search.getArtistResults',
     'playlistResults': '__call=search.getPlaylistResults',
+    'topSearches': '__call=content.getTopSearches',
     
     // Song endpoints
     'songDetails': '__call=song.getDetails',
@@ -21,30 +22,52 @@ class SaavnAPI {
     'songLyrics': '__call=lyrics.getLyrics',
     'radioSongs': '__call=webradio.getSong',
     'entityRadio': '__call=webradio.createEntityStation',
+    'songById': '__call=song.getDetails',
     
     // Album endpoints
     'albumDetails': '__call=content.getAlbumDetails',
+    'albumById': '__call=content.getAlbumDetails',
+    'albumSongs': '__call=song.getDetails',
     
     // Artist endpoints
     'artistDetails': '__call=artist.getArtistPageDetails',
     'artistSongs': '__call=artist.getArtistMoreSong',
     'artistAlbums': '__call=artist.getArtistMoreAlbum',
     'artistOtherTopSongs': '__call=search.artistOtherTopSongs',
+    'artistById': '__call=artist.getArtistPageDetails',
+    'artistTopSongs': '__call=artist.getArtistMoreSong',
     
     // Playlist endpoints
     'playlistDetails': '__call=playlist.getDetails',
+    'playlistById': '__call=playlist.getDetails',
+    'playlistSongs': '__call=playlist.getDetails',
     
     // Radio endpoints
     'featuredRadio': '__call=webradio.createFeaturedStation',
     'artistRadio': '__call=webradio.createArtistStation',
+    'radioStations': '__call=webradio.createFeaturedStation',
     
     // Home and discovery
     'homeData': '__call=webapi.getLaunchData',
-    'topSearches': '__call=content.getTopSearches',
     'browseModules': '__call=content.getBrowseModules',
     'trending': '__call=content.getTrending',
+    'charts': '__call=content.getCharts',
+    'newReleases': '__call=content.getAlbums',
+    'topAlbums': '__call=content.getAlbums',
+    'topPlaylists': '__call=content.getFeaturedPlaylists',
+    'modules': '__call=content.getBrowseModules',
+    
+    // Recommendations
     'getReco': '__call=reco.getreco',
     'getAlbumReco': '__call=reco.getAlbumReco',
+    'getSongReco': '__call=reco.getreco',
+    'getArtistReco': '__call=reco.getArtistReco',
+    
+    // Additional endpoints
+    'mix': '__call=webradio.createEntityStation',
+    'radio': '__call=webradio.createFeaturedStation',
+    'megaMenu': '__call=content.getMegaMenuData',
+    'launchData': '__call=webapi.getLaunchData',
   };
 
   Future<Response> getResponse(String params, {bool usev4 = false}) async {
@@ -58,7 +81,17 @@ class SaavnAPI {
     headers = {
       'cookie': languageHeader,
       'Accept': 'application/json, text/plain, */*',
+      'Accept-Language': 'en-US,en;q=0.9,hi;q=0.8',
+      'Accept-Encoding': 'gzip, deflate, br',
       'Content-Type': 'application/json',
+      'Origin': 'https://www.jiosaavn.com',
+      'Referer': 'https://www.jiosaavn.com/',
+      'sec-ch-ua': '"Not_A Brand";v="8", "Chromium";v="134", "Google Chrome";v="134"',
+      'sec-ch-ua-mobile': '?0',
+      'sec-ch-ua-platform': '"Windows"',
+      'sec-fetch-dest': 'empty',
+      'sec-fetch-mode': 'cors',
+      'sec-fetch-site': 'same-origin',
       'User-Agent':
           'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36',
     };
