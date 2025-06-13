@@ -10,6 +10,7 @@ import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:Bloomee/utils/ytstream_source.dart';
 import 'package:Bloomee/utils/simple_youtube_source.dart';
+import 'package:Bloomee/utils/youtube_direct_source.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:easy_debounce/easy_throttle.dart';
 import 'package:flutter/foundation.dart';
@@ -251,14 +252,28 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         quality = quality.toLowerCase();
         final id = mediaItem.id.replaceAll("youtube", '');
         
-        // Try simple implementation first for better reliability
+        // Try multiple implementations with proper error handling
         try {
-          return SimpleYouTubeAudioSource(
+          log('Trying YouTubeDirectAudioSource for video: $id', name: "bloomeePlayer");
+          return await YouTubeDirectAudioSource.create(
               videoId: id, quality: quality, tag: mediaItem);
         } catch (e) {
-          log('SimpleYT failed, trying complex implementation: $e', name: "bloomeePlayer");
-          return YouTubeAudioSource(
-              videoId: id, quality: quality, tag: mediaItem);
+          log('YouTubeDirect failed: $e', name: "bloomeePlayer");
+          try {
+            log('Trying SimpleYouTubeAudioSource for video: $id', name: "bloomeePlayer");
+            return SimpleYouTubeAudioSource(
+                videoId: id, quality: quality, tag: mediaItem);
+          } catch (e2) {
+            log('SimpleYT failed: $e2', name: "bloomeePlayer");
+            try {
+              log('Trying YouTubeAudioSource for video: $id', name: "bloomeePlayer");
+              return YouTubeAudioSource(
+                  videoId: id, quality: quality, tag: mediaItem);
+            } catch (e3) {
+              log('All YouTube implementations failed: $e3', name: "bloomeePlayer");
+              throw Exception('Failed to create YouTube audio source for $id: $e3');
+            }
+          }
         }
       }
       String? kurl = await getJsQualityURL(mediaItem.extras?["url"]);

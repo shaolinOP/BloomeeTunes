@@ -34,8 +34,15 @@ class SimpleYouTubeAudioSource extends StreamAudioSource {
       dev.log('SimpleYT: Selected stream - ${selectedStream.codec} ${selectedStream.bitrate}', name: 'SimpleYT');
       
       start ??= 0;
-      if (end != null && end > selectedStream.size.totalBytes) {
-        end = selectedStream.size.totalBytes;
+      
+      // Null safety checks
+      final streamSize = selectedStream.size?.totalBytes;
+      if (streamSize == null) {
+        throw Exception('Stream size is null for video: $videoId');
+      }
+      
+      if (end != null && end > streamSize) {
+        end = streamSize;
       }
 
       final stream = ytExplode.videos.streams.get(
@@ -44,12 +51,14 @@ class SimpleYouTubeAudioSource extends StreamAudioSource {
         end: end,
       );
 
+      final mimeType = selectedStream.codec?.mimeType ?? 'audio/mp4';
+
       return StreamAudioResponse(
-        sourceLength: selectedStream.size.totalBytes,
-        contentLength: end != null ? end - start : selectedStream.size.totalBytes - start,
+        sourceLength: streamSize,
+        contentLength: end != null ? end - start : streamSize - start,
         offset: start,
         stream: stream,
-        contentType: selectedStream.codec.mimeType,
+        contentType: mimeType,
       );
     } catch (e) {
       dev.log('SimpleYT: Error for video $videoId: $e', name: 'SimpleYT');

@@ -128,9 +128,11 @@ Future<void> main() async {
   await initServices();
   setHighRefreshRate();
   try {
-    MetadataGod.initialize();
+    await MetadataGod.initialize();
+    log('MetadataGod initialized successfully', name: 'main');
   } catch (e) {
     log('MetadataGod initialization failed: $e', name: 'main');
+    log('App will continue without MetadataGod functionality', name: 'main');
   }
   setupPlayerCubit();
   DiscordService.initialize();

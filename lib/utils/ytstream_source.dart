@@ -9,14 +9,29 @@ import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
 Future<AudioOnlyStreamInfo> getStreamInfoBG(
     String videoId, RootIsolateToken? token, String quality) async {
+  YoutubeExplode? ytExplode;
   try {
     BackgroundIsolateBinaryMessenger.ensureInitialized(token!);
-    final ytExplode = YoutubeExplode();
+    ytExplode = YoutubeExplode();
     print('Getting manifest for video: $videoId with quality: $quality');
-    final manifest = await ytExplode.videos.streams.getManifest(videoId,
-        requireWatchPage: false, ytClients: [YoutubeApiClient.androidMusic, YoutubeApiClient.android]);
+    
+    // Try different client configurations for better compatibility
+    StreamManifest? manifest;
+    try {
+      manifest = await ytExplode.videos.streams.getManifest(videoId,
+          requireWatchPage: false, ytClients: [YoutubeApiClient.androidMusic, YoutubeApiClient.android]);
+    } catch (e) {
+      print('Failed with androidMusic/android clients, trying default: $e');
+      manifest = await ytExplode.videos.streams.getManifest(videoId, requireWatchPage: false);
+    }
+    
     final supportedStreams = manifest.audioOnly.sortByBitrate();
     print('Found ${supportedStreams.length} audio streams for video: $videoId');
+    
+    if (supportedStreams.isEmpty) {
+      throw Exception('No audio streams available for video: $videoId');
+    }
+    
     final audioStream = quality == 'high'
         ? supportedStreams.lastOrNull
         : supportedStreams.firstOrNull;
@@ -28,6 +43,8 @@ Future<AudioOnlyStreamInfo> getStreamInfoBG(
   } catch (e) {
     print('Error in getStreamInfoBG for video $videoId: $e');
     rethrow;
+  } finally {
+    ytExplode?.close();
   }
 }
 

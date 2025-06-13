@@ -71,9 +71,20 @@ abstract class YTMusicServices {
   }
 
   Future<String?> getVisitorId(Map<String, String>? headers) async {
-    final response = await sendGetRequest(httpsYtmDomain, headers);
-    final reg = RegExp(r'ytcfg\.set\s*\(\s*({.+?})\s*\)\s*;');
-    final matches = reg.firstMatch(response.body);
+    try {
+      final response = await sendGetRequest(httpsYtmDomain, headers);
+      String responseBody;
+      
+      // Handle potential UTF-8 encoding issues
+      try {
+        responseBody = response.body;
+      } catch (e) {
+        // If UTF-8 decoding fails, try with latin1 and then convert
+        responseBody = utf8.decode(response.bodyBytes, allowMalformed: true);
+      }
+      
+      final reg = RegExp(r'ytcfg\.set\s*\(\s*({.+?})\s*\)\s*;');
+      final matches = reg.firstMatch(responseBody);
     String? visitorId;
     if (matches != null) {
       final ytcfg = json.decode(matches.group(1).toString());
@@ -85,6 +96,11 @@ abstract class YTMusicServices {
     }
     // return await Hive.box('SETTINGS').get('VISITOR_ID');
     return await BloomeeDBService.getAPICache("VISITOR_ID");
+    } catch (e) {
+      print('Error getting visitor ID: $e');
+      // Return cached visitor ID if available
+      return await BloomeeDBService.getAPICache("VISITOR_ID");
+    }
   }
 
   Future<Map> sendRequest(String endpoint, Map<String, dynamic> body,
