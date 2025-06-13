@@ -9,7 +9,7 @@ import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
-import 'package:audiotags/audiotags.dart';
+import 'package:metadata_god/metadata_god.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:image/image.dart' as img;
@@ -148,40 +148,30 @@ class BloomeeDownloader {
     //     await downloadFile(song.artUri.toString(), "${song.id}.jpg");
     // log("Image downloaded for ${imgPath}", name: "BloomeeDownloader");
     try {
-      final imageBytes = await getSquareImg(
-          await getImgBytes(song.artUri.toString()));
-      
-      final tag = Tag(
-        title: song.title,
-        trackArtist: song.artist,
-        album: song.album,
-        genre: song.genre,
-        pictures: imageBytes != null ? [
-          Picture(
-            bytes: imageBytes,
-            mimeType: MimeType.jpeg,
-            pictureType: PictureType.other,
-          )
-        ] : [],
-      );
-      
-      await AudioTags.write(filePath, tag);
+      await MetadataGod.writeMetadata(
+          file: filePath,
+          metadata: Metadata(
+            title: song.title,
+            artist: song.artist,
+            album: song.album,
+            genre: song.genre,
+            picture: Picture(
+              data: (await getSquareImg(
+                  await getImgBytes(song.artUri.toString())))!,
+              mimeType: 'image/jpeg',
+            ),
+          ));
     } catch (e) {
       log("Failed to tag with image ${song.title} by ${song.artist}",
           error: e, name: "BloomeeDownloader");
-      try {
-        final tag = Tag(
-          title: song.title,
-          trackArtist: song.artist,
-          album: song.album,
-          genre: song.genre,
-          pictures: [],
-        );
-        await AudioTags.write(filePath, tag);
-      } catch (e2) {
-        log("Failed to tag without image ${song.title} by ${song.artist}",
-            error: e2, name: "BloomeeDownloader");
-      }
+      await MetadataGod.writeMetadata(
+          file: filePath,
+          metadata: Metadata(
+            title: song.title,
+            artist: song.artist,
+            album: song.album,
+            genre: song.genre,
+          ));
     }
     // deleteFile(imgPath!);
   }

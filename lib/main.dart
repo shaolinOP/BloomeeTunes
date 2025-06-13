@@ -31,7 +31,7 @@ import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubi
 import 'package:Bloomee/screens/screen/library_views/cubit/import_playlist_cubit.dart';
 import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
-import 'package:audiotags/audiotags.dart';
+import 'package:metadata_god/metadata_god.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:responsive_framework/responsive_framework.dart';
@@ -127,7 +127,7 @@ Future<void> main() async {
   }
   await initServices();
   setHighRefreshRate();
-  // AudioTags initialization is automatic
+  MetadataGod.initialize();
   setupPlayerCubit();
   DiscordService.initialize();
   runApp(const MyApp());

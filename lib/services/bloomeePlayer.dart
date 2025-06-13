@@ -107,14 +107,9 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       // Which other actions should be enabled in the notification
       systemActions: const {
         MediaAction.skipToPrevious,
-        MediaAction.play,
-        MediaAction.pause,
         MediaAction.playPause,
         MediaAction.skipToNext,
         MediaAction.seek,
-        MediaAction.stop,
-        MediaAction.rewind,
-        MediaAction.fastForward,
       },
       androidCompactActionIndices: const [0, 1, 2],
       updatePosition: audioPlayer.position,
@@ -237,61 +232,29 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }
 
   Future<AudioSource> getAudioSource(MediaItem mediaItem) async {
-    try {
-      // Check for offline/downloaded version first
-      final _down = await BloomeeDBService.getDownloadDB(
-          mediaItem2MediaItemModel(mediaItem));
-      
-      if (_down != null) {
-        final filePath = '${_down.filePath}/${_down.fileName}';
-        final file = File(filePath);
-        
-        if (await file.exists()) {
-          log("Playing Offline: $filePath", name: "bloomeePlayer");
-          SnackbarService.showMessage("Playing Offline",
-              duration: const Duration(seconds: 1));
-          isOffline.add(true);
-          return AudioSource.uri(Uri.file(filePath), tag: mediaItem);
-        } else {
-          log("Downloaded file not found: $filePath", name: "bloomeePlayer");
-          // Continue to online playback
-        }
-      }
-      
-      // Online playback
+    final _down = await BloomeeDBService.getDownloadDB(
+        mediaItem2MediaItemModel(mediaItem));
+    if (_down != null) {
+      log("Playing Offline", name: "bloomeePlayer");
+      SnackbarService.showMessage("Playing Offline",
+          duration: const Duration(seconds: 1));
+      isOffline.add(true);
+      return AudioSource.uri(Uri.file('${_down.filePath}/${_down.fileName}'),
+          tag: mediaItem);
+    } else {
       isOffline.add(false);
-      
       if (mediaItem.extras?["source"] == "youtube") {
-        String? quality = await BloomeeDBService.getSettingStr(GlobalStrConsts.ytStrmQuality);
+        String? quality =
+            await BloomeeDBService.getSettingStr(GlobalStrConsts.ytStrmQuality);
         quality = quality ?? "high";
         quality = quality.toLowerCase();
         final id = mediaItem.id.replaceAll("youtube", '');
-        
-        if (id.isEmpty) {
-          throw Exception("Invalid YouTube video ID");
-        }
-        
-        log("Creating YouTube audio source for ID: $id, quality: $quality", name: "bloomeePlayer");
-        return YouTubeAudioSource(videoId: id, quality: quality, tag: mediaItem);
+        return YouTubeAudioSource(
+            videoId: id, quality: quality, tag: mediaItem);
       }
-      
-      // For other sources (JioSaavn, etc.)
-      final url = mediaItem.extras?["url"];
-      if (url == null || url.isEmpty) {
-        throw Exception("No URL found in media item extras");
-      }
-      
-      String? kurl = await getJsQualityURL(url);
-      if (kurl == null || kurl.isEmpty) {
-        throw Exception("Failed to get streaming URL");
-      }
-      
+      String? kurl = await getJsQualityURL(mediaItem.extras?["url"]);
       log('Playing: $kurl', name: "bloomeePlayer");
-      return AudioSource.uri(Uri.parse(kurl), tag: mediaItem);
-      
-    } catch (e) {
-      log("Error getting audio source for ${mediaItem.title}: $e", name: "bloomeePlayer");
-      rethrow;
+      return AudioSource.uri(Uri.parse(kurl!), tag: mediaItem);
     }
   }
 
@@ -316,35 +279,19 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     required AudioSource audioSource,
     required String mediaId,
   }) async {
+    await pause();
+    await seek(Duration.zero);
     try {
-      await pause();
-      await seek(Duration.zero);
-      
       if (_playlist.children.isNotEmpty) {
         await _playlist.clear();
       }
-      
       await _playlist.add(audioSource);
       await audioPlayer.load();
-      
       if (!audioPlayer.playing) await play();
-      
-      log("Successfully loaded and playing: $mediaId", name: "bloomeePlayer");
     } catch (e) {
-      log("Error playing audio source for $mediaId: $e", name: "bloomeePlayer");
-      
+      log("Error: $e", name: "bloomeePlayer");
       if (e is PlayerException) {
-        final errorMessage = "Failed to play song: ${e.message}";
-        SnackbarService.showMessage(errorMessage);
-      } else {
-        SnackbarService.showMessage("Unexpected error: ${e.toString()}");
-      }
-      
-      // Try to skip to next song if available
-      if (queue.value.length > 1) {
-        log("Attempting to skip to next song due to error", name: "bloomeePlayer");
-        await skipToNext();
-      } else {
+        SnackbarService.showMessage("Failed to play song: $e");
         await stop();
       }
     }
@@ -368,23 +315,13 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   @override
   Future<void> rewind() async {
     if (audioPlayer.processingState == ProcessingState.ready) {
-      final currentPosition = audioPlayer.position;
-      final newPosition = currentPosition - const Duration(seconds: 10);
-      await audioPlayer.seek(newPosition < Duration.zero ? Duration.zero : newPosition);
+      await audioPlayer.seek(Duration.zero);
     } else if (audioPlayer.processingState == ProcessingState.completed) {
       await prepare4play(idx: currentPlayingIdx);
     }
   }
 
-  @override
-  Future<void> fastForward() async {
-    if (audioPlayer.processingState == ProcessingState.ready && audioPlayer.duration != null) {
-      final currentPosition = audioPlayer.position;
-      final duration = audioPlayer.duration!;
-      final newPosition = currentPosition + const Duration(seconds: 10);
-      await audioPlayer.seek(newPosition > duration ? duration : newPosition);
-    }
-  }
+
 
   @override
   Future<void> skipToNext() async {
