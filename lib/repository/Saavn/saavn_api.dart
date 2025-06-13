@@ -8,23 +8,43 @@ class SaavnAPI {
   String baseUrl = 'www.jiosaavn.com';
   String apiStr = '/api.php?_format=json&_marker=0&api_version=4&ctx=web6dot0';
   Map<String, String> endpoints = {
-    'homeData': '__call=webapi.getLaunchData',
-    'topSearches': '__call=content.getTopSearches',
-    'fromToken': '__call=webapi.get',
-    'featuredRadio': '__call=webradio.createFeaturedStation',
-    'artistRadio': '__call=webradio.createArtistStation',
-    'entityRadio': '__call=webradio.createEntityStation',
-    'radioSongs': '__call=webradio.getSong',
-    'songDetails': '__call=song.getDetails',
-    'playlistDetails': '__call=playlist.getDetails',
-    'albumDetails': '__call=content.getAlbumDetails',
+    // Search endpoints
+    'searchAll': '__call=autocomplete.get',
     'getResults': '__call=search.getResults',
     'albumResults': '__call=search.getAlbumResults',
     'artistResults': '__call=search.getArtistResults',
     'playlistResults': '__call=search.getPlaylistResults',
+    
+    // Song endpoints
+    'songDetails': '__call=song.getDetails',
+    'fromToken': '__call=webapi.get',
+    'songLyrics': '__call=lyrics.getLyrics',
+    'radioSongs': '__call=webradio.getSong',
+    'entityRadio': '__call=webradio.createEntityStation',
+    
+    // Album endpoints
+    'albumDetails': '__call=content.getAlbumDetails',
+    
+    // Artist endpoints
+    'artistDetails': '__call=artist.getArtistPageDetails',
+    'artistSongs': '__call=artist.getArtistMoreSong',
+    'artistAlbums': '__call=artist.getArtistMoreAlbum',
+    'artistOtherTopSongs': '__call=search.artistOtherTopSongs',
+    
+    // Playlist endpoints
+    'playlistDetails': '__call=playlist.getDetails',
+    
+    // Radio endpoints
+    'featuredRadio': '__call=webradio.createFeaturedStation',
+    'artistRadio': '__call=webradio.createArtistStation',
+    
+    // Home and discovery
+    'homeData': '__call=webapi.getLaunchData',
+    'topSearches': '__call=content.getTopSearches',
+    'browseModules': '__call=content.getBrowseModules',
+    'trending': '__call=content.getTrending',
     'getReco': '__call=reco.getreco',
     'getAlbumReco': '__call=reco.getAlbumReco',
-    'artistOtherTopSongs': '__call=search.artistOtherTopSongs',
   };
 
   Future<Response> getResponse(String params, {bool usev4 = false}) async {
@@ -38,8 +58,9 @@ class SaavnAPI {
     headers = {
       'cookie': languageHeader,
       'Accept': 'application/json, text/plain, */*',
+      'Content-Type': 'application/json',
       'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36',
     };
     return get(url, headers: headers).onError((error, stackTrace) {
       return Response(

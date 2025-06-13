@@ -254,7 +254,10 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       }
       String? kurl = await getJsQualityURL(mediaItem.extras?["url"]);
       log('Playing: $kurl', name: "bloomeePlayer");
-      return AudioSource.uri(Uri.parse(kurl!), tag: mediaItem);
+      if (kurl == null || kurl.isEmpty) {
+        throw Exception('Invalid audio URL for ${mediaItem.title}');
+      }
+      return AudioSource.uri(Uri.parse(kurl), tag: mediaItem);
     }
   }
 
@@ -289,11 +292,19 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       await audioPlayer.load();
       if (!audioPlayer.playing) await play();
     } catch (e) {
-      log("Error: $e", name: "bloomeePlayer");
+      log("Error playing audio: $e", name: "bloomeePlayer");
+      String errorMsg = "Failed to play song";
       if (e is PlayerException) {
-        SnackbarService.showMessage("Failed to play song: $e");
-        await stop();
+        errorMsg = "Player error: ${e.message}";
+      } else if (e.toString().contains('Invalid audio URL')) {
+        errorMsg = "Invalid audio source - check network connection";
+      } else if (e.toString().contains('Failed to load audio')) {
+        errorMsg = "Audio loading failed - try again";
+      } else {
+        errorMsg = "Failed to play song: ${e.toString()}";
       }
+      SnackbarService.showMessage(errorMsg);
+      await stop();
     }
   }
 

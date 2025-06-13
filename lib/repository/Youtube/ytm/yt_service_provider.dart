@@ -48,7 +48,7 @@ abstract class YTMusicServices {
   static const String ytmParams =
       '?alt=json&key=AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX30';
   static const userAgent =
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0';
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36';
 
   Map<String, String> headers = {};
   int? signatureTimestamp;
