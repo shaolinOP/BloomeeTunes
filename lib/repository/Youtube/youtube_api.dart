@@ -95,7 +95,7 @@ class YouTubeServices {
   Future<Map?> refreshLink(String id, {String quality = 'Low'}) async {
     try {
       final StreamManifest manifest =
-          await yt.videos.streamsClient.getManifest(id, ytClients: [YoutubeApiClient.androidMusic, YoutubeApiClient.android, YoutubeApiClient.web]);
+          await yt.videos.streamsClient.getManifest(id, ytClients: [YoutubeApiClient.androidMusic, YoutubeApiClient.android]);
       final List<AudioOnlyStreamInfo> sortedStreamInfo =
           manifest.audioOnly.sortByBitrate();
 
@@ -508,7 +508,7 @@ class YouTubeServices {
     // {bool preferM4a = true}
   ) async {
     final StreamManifest manifest =
-        await yt.videos.streamsClient.getManifest(video.id, ytClients: [YoutubeApiClient.androidMusic, YoutubeApiClient.android, YoutubeApiClient.web]);
+        await yt.videos.streamsClient.getManifest(video.id, ytClients: [YoutubeApiClient.androidMusic, YoutubeApiClient.android]);
     final List<AudioOnlyStreamInfo> sortedStreamInfo =
         manifest.audioOnly.sortByBitrate();
     if (Platform.isIOS || Platform.isMacOS) {

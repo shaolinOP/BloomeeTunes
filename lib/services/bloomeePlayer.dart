@@ -303,7 +303,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     } catch (e) {
       log("Error playing audio: $e", name: "bloomeePlayer");
       log("Error type: ${e.runtimeType}", name: "bloomeePlayer");
-      log("Media item: ${mediaItem.title} - ${mediaItem.extras?['source']}", name: "bloomeePlayer");
+      log("Media item: ${mediaItem.value?.title} - ${mediaItem.value?.extras?['source']}", name: "bloomeePlayer");
       
       String errorMsg = "Failed to play song";
       if (e is PlayerException) {

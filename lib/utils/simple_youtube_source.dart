@@ -57,9 +57,7 @@ class SimpleYouTubeAudioSource extends StreamAudioSource {
     }
   }
 
-  @override
   void dispose() {
     ytExplode.close();
-    super.dispose();
   }
 }

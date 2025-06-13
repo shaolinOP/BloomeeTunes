@@ -14,7 +14,7 @@ Future<AudioOnlyStreamInfo> getStreamInfoBG(
     final ytExplode = YoutubeExplode();
     print('Getting manifest for video: $videoId with quality: $quality');
     final manifest = await ytExplode.videos.streams.getManifest(videoId,
-        requireWatchPage: false, ytClients: [YoutubeApiClient.androidMusic, YoutubeApiClient.android, YoutubeApiClient.web]);
+        requireWatchPage: false, ytClients: [YoutubeApiClient.androidMusic, YoutubeApiClient.android]);
     final supportedStreams = manifest.audioOnly.sortByBitrate();
     print('Found ${supportedStreams.length} audio streams for video: $videoId');
     final audioStream = quality == 'high'
